@@ -29,8 +29,9 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
-          source: apps/server/*
+          source: apps/server/**
           target: /home/ubuntu/mediasoup-server/
+          strip_components: 2
 
       - name: SSH and build/start server
         uses: appleboy/ssh-action@v1.0.0
@@ -39,7 +40,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd /home/ubuntu/mediasoup-server/apps/server
+            cd /home/ubuntu/mediasoup-server
             npm install --legacy-peer-deps
             npm run build
             pm2 restart mediasoup || pm2 start dist/index.js --name mediasoup
