@@ -5,6 +5,13 @@ on:
   push:
     branches:
       - main
+      - feat/ci-cd
+    paths:
+      - 'apps/server/**'
+
+  pull_request:
+    branches:
+      - main
     paths:
       - 'apps/server/**'
 
@@ -32,7 +39,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd /home/ubuntu/mediasoup-server
+            cd /home/ubuntu/mediasoup-server/apps/server
             npm install --legacy-peer-deps
             npm run build
             pm2 restart mediasoup || pm2 start dist/index.js --name mediasoup
