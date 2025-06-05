@@ -9,6 +9,7 @@ export const startWebRTC = ({ onConnect, onLog }: WebRTCOptions) => {
   let device: Device;
   let sendTransport: types.Transport;
   let recvTransport: types.Transport;
+  let pendingProduceCallback: ((opts: { id: string }) => void) | null = null;
 
   socket.onopen = () => {
     onLog('WebSocket 연결됨');
@@ -39,8 +40,8 @@ export const startWebRTC = ({ onConnect, onLog }: WebRTCOptions) => {
       });
 
       sendTransport.on('produce', ({ kind, rtpParameters }, callback) => {
+        pendingProduceCallback = callback;
         socket.send(JSON.stringify({ type: 'produce', kind, rtpParameters }));
-        callback({ id: 'fake-id' }); //TODO
       });
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -74,6 +75,13 @@ export const startWebRTC = ({ onConnect, onLog }: WebRTCOptions) => {
           rtpCapabilities: device.rtpCapabilities,
         })
       );
+    }
+
+    if (message.type === 'produced') {
+      if (pendingProduceCallback) {
+        pendingProduceCallback({ id: message.id });
+        pendingProduceCallback = null;
+      }
     }
 
     if (message.type === 'consumed') {
